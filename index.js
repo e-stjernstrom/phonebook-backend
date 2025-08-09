@@ -1,9 +1,8 @@
+require('dotenv').config()
 const express = require('express')
-
 const cors = require('cors')
 const morgan = require('morgan')
 
-const mongoose = require('mongoose')
 morgan.token('type', (req, res) => (JSON.stringify(req.body)))
 
 const app = express()
@@ -13,29 +12,7 @@ app.use(cors())
 app.use(express.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :type'))
 
-const passwd = process.argv[2]
-const url =
-  `mongodb+srv://fullstack:${passwd}@cluster0.bnf0w61.mongodb.net/phonebook?
-retryWrites=true&w=majority&appName=Cluster0`
-
-mongoose.set('strictQuery',false)
-
-mongoose.connect(url)
-
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-})
-
-personSchema.set('toJSON', {
-  transform: (doc, ret, options) => {
-    ret.id = ret._id.toString()
-    delete ret._id
-    delete ret.__v
-  }
-})
-
-const Person = mongoose.model('Person', personSchema)
+const Person = require('./models/person')
 
 app.get('/info', (req, res) => {
   res.send(`
@@ -101,7 +78,7 @@ app.post('/api/persons', (req, res) => {
   res.json(person) // response output
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

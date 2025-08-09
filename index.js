@@ -28,29 +28,29 @@ app.get('/api/persons', (req, res) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-  const id = req.params.id
-  // const person = persons.find(person => person.id === id)
-
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
+  Person.findById(req.params.id).then(person => {
+    if (person) {
+      res.json(person)
+    } else {
+      res.status(404).end()
+    }
+  })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
   const id = req.params.id
-  persons = persons.filter(person => person.id !== id)
-  res.status(204).end()
+  Person.findByIdAndDelete(req.params.id).then(result => {
+    res.status(204).end()
+  })
 })
 
-
-
+/*
 const genID = (scale = 2) => {
   const random = Math.floor(Math.random() * Math.pow(10, scale)).toString().padStart(scale, '0')
   const id = Date.now().toString() + random
   return id
 }
+*/
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
@@ -61,21 +61,14 @@ app.post('/api/persons', (req, res) => {
     )
   }
 
-  if (persons.some(person => person.name === body.name)) {
-    return res.status(400).json(
-      { error: 'name must be unique' }
-    )
-  }
-
-  const person = {
-    id: genID(),
+  const person = new Person ({
     name: body.name,
     number: body.number
-  }
+  })
 
-  persons = persons.concat(person)
-
-  res.json(person) // response output
+  person.save().then(savedPerson => {
+    res.json(savedPerson) // response output
+  })
 })
 
 const PORT = process.env.PORT
